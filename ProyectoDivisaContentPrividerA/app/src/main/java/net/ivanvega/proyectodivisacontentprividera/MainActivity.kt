@@ -24,7 +24,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var binding: ActivityMainBinding
 
-    private val MonedaViewModel: MonedaViewModel by  viewModels {
+    private val monedaViewModel: MonedaViewModel by  viewModels {
         MonedaViewModelFactory((application as MiApplication).repositoryMoneda)
     }
 
@@ -40,6 +40,14 @@ class MainActivity : AppCompatActivity() {
         appBarConfiguration = AppBarConfiguration(navController.graph)
         setupActionBarWithNavController(navController, appBarConfiguration)
 
+        monedaViewModel.allMoneda.observe(this){
+                    it?.let {  ls ->
+                        ls.forEach { moneda ->
+                            Log.d("Listaoneda", "ID= ${moneda._ID}, code=${moneda.codeMoneda}" )
+                        }
+                    }
+        }
+
         binding.fab.setOnClickListener { view ->
             Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
                 .setAction("Action", null).show()
@@ -51,6 +59,7 @@ class MainActivity : AppCompatActivity() {
                     ContactsContract.Profile.LOOKUP_KEY,
                     ContactsContract.Profile.PHOTO_THUMBNAIL_URI
                 )
+
 
     // Retrieves the profile from the Contacts Provider
                 val profileCursor = contentResolver.query(

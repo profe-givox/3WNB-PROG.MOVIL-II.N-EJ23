@@ -5,6 +5,8 @@ import android.content.ContentValues
 import android.content.UriMatcher
 import android.database.Cursor
 import android.net.Uri
+import net.ivanvega.proyectodivisacontentprividera.MiApplication
+import net.ivanvega.proyectodivisacontentprividera.db.MiDbMonedas
 
 private val sUriMatcher = UriMatcher(UriMatcher.NO_MATCH).apply {
     /*
@@ -17,6 +19,7 @@ private val sUriMatcher = UriMatcher(UriMatcher.NO_MATCH).apply {
      * in the path
      */
     addURI("net.ivanvega.proyectodivisacontentprividera", "monedas", 1)
+    //"content://net.ivanvega.proyectodivisacontentprividera/monedas"
 
     /*
      * Sets the code for a single row to 2. In this case, the "#" wildcard is
@@ -29,9 +32,12 @@ private val sUriMatcher = UriMatcher(UriMatcher.NO_MATCH).apply {
 }
 
 class MiProveedorDeContenido : ContentProvider() {
-    override fun onCreate(): Boolean {
-        TODO("Not yet implemented")
+    private lateinit var db: MiDbMonedas
 
+    override fun onCreate(): Boolean {
+        //TODO("Not yet implemented")
+        db = (context as MiApplication).database
+        return true
     }
 
     override fun query(
@@ -42,31 +48,29 @@ class MiProveedorDeContenido : ContentProvider() {
         p4: String?
     ): Cursor? {
         //TODO("Not yet implemented")
+        var cursor: Cursor? = null
         when( sUriMatcher.match(p0)){
-
             //"content://net.ivanvega.proyectodivisacontentprividera/monedas"
             //query / insert
             1 -> {
                 //ir  a la bd y traer el getall
+               cursor =  db.monedaDao().getAllCursor()
             }
 
             //"content://net.ivanvega.proyectodivisacontentprividera/monedas/*"
             //query
             2 -> {
-
             }
 
             //"content://net.ivanvega.proyectodivisacontentprividera/monedas/#"
             //query / update  /  delete
             3 -> {
-
             }
             else -> {
-
             }
 
         }
-         return null
+         return cursor
     }
 
     override fun getType(p0: Uri): String? {
@@ -81,13 +85,13 @@ class MiProveedorDeContenido : ContentProvider() {
                 typeMime = "vnd.android.cursor.dir/vnd.net.ivanvega.provider.monedas"
             }
 
-            //"content://net.ivanvega.proyectodivisacontentprividera/monedas/*"
+            //"content://net.ivanvega.proyectodivisacontentprividera/monedas/#"
             //query
             2 -> {
                 typeMime = "vnd.android.cursor.item/vnd.net.ivanvega.provider.monedas"
             }
 
-            //"content://net.ivanvega.proyectodivisacontentprividera/monedas/#"
+            //"content://net.ivanvega.proyectodivisacontentprividera/monedas/*"
             //query / update  /  delete
             3 -> {
                 typeMime = "vnd.android.cursor.item/vnd.net.ivanvega.provider.monedas"

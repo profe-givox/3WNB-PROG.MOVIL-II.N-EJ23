@@ -2,17 +2,35 @@ package net.ivanvega.missensoresb
 
 import android.content.Context
 import android.hardware.Sensor
+import android.hardware.SensorEvent
+import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.widget.TextView
 import android.widget.Toast
 
 class MainActivity : AppCompatActivity() {
-
+    private var mLight: Sensor? = null
     private var mSensor: Sensor? = null
     private lateinit var sensorManager: SensorManager
 
+    val sensorEventListener : SensorEventListener = object : SensorEventListener {
+        override fun onSensorChanged(p0: SensorEvent?) {
+            //TODO("Not yet implemented")
+            // The light sensor returns a single value.
+            // Many sensors return 3 values, one for each axis.
+            val lux = p0!!.values[0]
+            // Do something with this sensor value.
+            Log.i("UnSensor",lux.toString())
+            findViewById<TextView>(R.id.txt).text = lux.toString()
+        }
+
+        override fun onAccuracyChanged(p0: Sensor?, p1: Int) {
+            //TODO("Not yet implemented")
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -53,8 +71,24 @@ class MainActivity : AppCompatActivity() {
                 // You can't play this game.
                 null
             }
+        }
+        Log.i("UnSensor", mSensor.toString())
+        mLight = sensorManager.getDefaultSensor(Sensor.TYPE_LIGHT)
+        Log.i("UnSensor", mLight.toString())
+    }
 
-
+    override fun onResume() {
+        super.onResume()
+        mLight?.also {
+            sensorManager.registerListener(sensorEventListener,
+                it,
+                SensorManager.SENSOR_DELAY_NORMAL )
         }
     }
+
+    override fun onPause() {
+        super.onPause()
+        sensorManager.unregisterListener(sensorEventListener)
+    }
+
 }

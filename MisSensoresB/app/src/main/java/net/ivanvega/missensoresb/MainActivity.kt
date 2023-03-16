@@ -8,14 +8,21 @@ import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
+import android.os.Build
 import android.os.Bundle
+import android.util.DisplayMetrics
 import android.util.Log
+import android.view.Display
 import android.view.View
-import android.widget.TextView
+import android.view.WindowManager
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 
+
 class MainActivity : AppCompatActivity(), SensorEventListener {
+     var pelota: MiViewDibujado? = null
+    private val linear_acceleration= FloatArray(3)
+    private val gravity = FloatArray(3)
     private var mLastAccelerometerSet: Boolean? = false
     private var sensorCampoMagetico: Sensor? = null
     private var sensorAcelerometro: Sensor? = null
@@ -23,6 +30,13 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
     private var mSensor: Sensor? = null
     private lateinit var sensorManager: SensorManager
 
+     var xPos =
+        0f
+      var xAcceleration:kotlin.Float = 0f
+      var xVelocity:kotlin.Float = 0.0f
+     var yPos =        0f
+      var yAcceleration:kotlin.Float = 0f
+      var yVelocity:kotlin.Float = 0.0f
 
     private val accelerometerReading = FloatArray(3)
     private val magnetometerReading = FloatArray(3)
@@ -46,7 +60,10 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(MiViewDibujado(context = this))
+         pelota = MiViewDibujado(this)
+        setContentView(pelota)
+
+
 
         sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
 
@@ -100,7 +117,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
                 SensorManager.SENSOR_DELAY_NORMAL )
         }
         sensorAcelerometro?.also {
-            sensorManager.registerListener(this,
+            sensorManager.registerListener(pelota,
                 it,
                 SensorManager.SENSOR_DELAY_UI)
         }
@@ -116,7 +133,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
     override fun onPause() {
         super.onPause()
         sensorManager.unregisterListener(sensorEventListener)
-        sensorManager.unregisterListener(this)
+        sensorManager.unregisterListener(pelota)
     }
 
     override fun onSensorChanged(p0: SensorEvent?) {
@@ -132,16 +149,12 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
                 mLastAccelerometerSet = true
 
 
-                val xAcc: Float = p0.values.get(0)
-                val yAcc: Float = p0.values.get(1)
-                val zAcc: Float = p0.values.get(2)
+                var xAcc: Float = p0.values.get(0)
+                var yAcc: Float = p0.values.get(1)
+                var zAcc: Float = p0.values.get(2)
 
-                /*findViewById<TextView>(R.id.txtAcelerometer).let {
-                    it.text = "x=$xAcc ; y=$yAcc ; z=$zAcc"
-                    Log.i("Acele", "x=$xAcc ; y=$yAcc ; z=$zAcc")
-                }*/
+                //Log.i("Acele", "x=$xAcc ; y=$yAcc ; z=$zAcc")
 
-                updatePOsicion()
             }
 
             Sensor.TYPE_MAGNETIC_FIELD -> {
@@ -155,17 +168,72 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
         }
     }
 
-    private fun updatePOsicion() {
-
+    private fun updatePOsicion( xOrientation: Float, yOrientation : Float) {
+        xAcceleration = xOrientation;
+        yAcceleration = yOrientation;
+        updateX();
+        updateY();
     }
+
+    fun updateX() {
+        xVelocity -= xAcceleration * 0.3f
+        xPos += xVelocity
+    }
+
+    fun updateY() {
+        yVelocity -= yAcceleration * 0.3f
+        yPos += yVelocity
+    }
+
     override fun onAccuracyChanged(p0: Sensor?, p1: Int) {
         //TODO("Not yet implemented")
     }
 
 }
 
-class  MiViewDibujado(context: Context)
-    : View(context) {
+class  MiViewDibujado(var micontext: Context)
+    : View(micontext), SensorEventListener {
+
+    private val linear_acceleration= FloatArray(3)
+    private val gravity = FloatArray(3)
+    /*var width : Int  = 0
+    var height : Int  = 0*/
+
+    var xPos =
+        0f
+    var xAcceleration:kotlin.Float = 0f
+    var xVelocity:kotlin.Float = 0.0f
+    var yPos =        0f
+    var yAcceleration:kotlin.Float = 0f
+    var yVelocity:kotlin.Float = 0.0f
+
+
+    init {
+        val windowManager = (getContext().getSystemService(Context.WINDOW_SERVICE) as WindowManager)
+        val screen: Display =
+            (getContext().getSystemService(Context.WINDOW_SERVICE) as WindowManager).defaultDisplay
+        var width = screen.getWidth()
+        var height = screen.getHeight()
+
+        Log.d("TamañoPantall", "w=$width ; h=$height"  )
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            height = windowManager.currentWindowMetrics.bounds.height()
+            width = windowManager.currentWindowMetrics.bounds.width()
+        }
+
+        Log.d("TamañoPantall", "w=$width ; h=$height"  )
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            val displayMetrics = DisplayMetrics()
+            windowManager.defaultDisplay.getMetrics(displayMetrics)
+
+            height = displayMetrics.heightPixels
+            width = displayMetrics.widthPixels
+        }
+
+        Log.d("TamañoPantall", "w=$width ; h=$height"  )
+    }
 
     val pincel = Paint().also {
         it.setColor(Color.RED)
@@ -174,7 +242,60 @@ class  MiViewDibujado(context: Context)
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
         canvas?.drawLine(200F,200F, 400F,400.0F, pincel)
+        canvas?.drawCircle(xPos,yPos, 50.0F , pincel)
         invalidate()
     }
+
+    private fun updatePOsicion( xOrientation: Float, yOrientation : Float) {
+        xAcceleration = xOrientation;
+        yAcceleration = yOrientation;
+        updateX();
+        updateY();
+    }
+
+    fun updateX() {
+        xVelocity -= xAcceleration * 0.3f
+        xPos += xVelocity
+    }
+
+    fun updateY() {
+        yVelocity -= yAcceleration * 0.3f
+        yPos += yVelocity
+    }
+
+    override fun onSensorChanged(p0: SensorEvent?) {
+        // In this example, alpha is calculated as t / (t + dT),
+        // where t is the low-pass filter's time-constant and
+        // dT is the event delivery rate.
+
+        val alpha: Float = 0.8f
+
+        // Isolate the force of gravity with the low-pass filter.
+        gravity[0] = alpha * gravity[0] + (1 - alpha) * p0!!.values[0]
+        gravity[1] = alpha * gravity[1] + (1 - alpha) * p0!!.values[1]
+        gravity[2] = alpha * gravity[2] + (1 - alpha) * p0!!.values[2]
+
+        // Remove the gravity contribution with the high-pass filter.
+        linear_acceleration[0] = p0!!.values[0] - gravity[0]
+        linear_acceleration[1] = p0!!.values[1] - gravity[1]
+        linear_acceleration[2] = p0!!.values[2] - gravity[2]
+
+        var xAcc = linear_acceleration[0]
+        var yAcc = linear_acceleration[1]
+        var zAcc = linear_acceleration[2]
+
+        Log.i("Acele", "x=$xAcc ; y=$yAcc ; z=$zAcc")
+
+        /*findViewById<TextView>(R.id.txtAcelerometer).let {
+            it.text = "x=$xAcc ; y=$yAcc ; z=$zAcc"
+            Log.i("Acele", "x=$xAcc ; y=$yAcc ; z=$zAcc")
+        }*/
+        updatePOsicion(xAcc,(yAcc*-1))
+    }
+
+    override fun onAccuracyChanged(p0: Sensor?, p1: Int) {
+
+    }
+
 
 }

@@ -10,10 +10,13 @@ import org.osmdroid.config.Configuration
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
+import org.osmdroid.views.overlay.Marker
+import org.osmdroid.views.overlay.Polyline
 
 
 class MainActivity : AppCompatActivity() {
 
+    private var firstMarker: Marker? = null
     var map: MapView? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -52,9 +55,27 @@ class MainActivity : AppCompatActivity() {
         map!!.setMultiTouchControls(true);
 
         val mapController = map!!.controller
-        mapController.setZoom(17)
-        val startPoint = GeoPoint(48.8583, 2.2944)
+        mapController.setZoom(19)
+        val startPoint = GeoPoint(20.13958, -101.15071)
         mapController.setCenter(startPoint)
+
+         firstMarker = Marker(map)
+        firstMarker?.position = startPoint
+
+        firstMarker?.setAnchor(Marker.ANCHOR_BOTTOM, Marker.ANCHOR_CENTER)
+        firstMarker?.title = "Title"
+        map?.overlays?.add(firstMarker)
+        map?.invalidate()
+
+        val geoPoints = arrayListOf<GeoPoint>(
+        startPoint,
+            GeoPoint(20.14034, -101.15060),
+            GeoPoint(20.14341, -101.14990),
+        )
+        val line = Polyline();   //see note below!
+        line.setPoints(geoPoints);
+
+        map?.overlays?.add(line)
     }
 
     override fun onResume() {

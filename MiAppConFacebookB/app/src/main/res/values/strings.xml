@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">MiAppConFacebookB</string>
+
+
+    <string name="facebook_app_id">1393790614806543</string>
+    <string name="fb_login_protocol_scheme">fb1393790614806543</string>
+    <string name="facebook_client_token">6ec92f49ba12715875310b42df49cd53</string>
+
+
+</resources>
